@@ -1,0 +1,56 @@
+﻿@page
+@model TicTacToe.Web.Model.ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #2c2c2c;
+        margin: 0;
+        color: #e0e0e0;
+    }
+
+    .error-container {
+        background: #3a3a3a;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        max-width: 400px;
+        margin: 4rem auto;
+        text-align: center;
+        color: #e0e0e0;
+    }
+
+    .error-header {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ef4444;
+        margin-bottom: 1rem;
+    }
+
+    .btn-new {
+        background-color: #22c55e;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 0.8rem;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        box-shadow: 0 4px 10px rgba(34, 197, 94, 0.5);
+    }
+
+        .btn-new:hover {
+            background-color: #16a34a;
+        }
+</style>
+
+<div class="error-container">
+    <div class="error-header">Error @Model.Code</div>
+    <p>@Model.Description</p>
+    <form method="post" asp-page="/Index">
+        <button type="submit" class="btn-new">New Game</button>
+    </form>
+</div>

@@ -1,0 +1,187 @@
+﻿@{
+    ViewData["Title"] = "Tic-Tac-Toe";
+}
+@model TicTacToe.Web.Model.GameWebDTO
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #2c2c2c;
+        margin: 0;
+        color: #e0e0e0;
+    }
+
+    .game-container {
+        background: #3a3a3a;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        max-width: 360px;
+        width: 100%;
+        text-align: center;
+        margin: 2rem auto;
+    }
+
+    .field-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+        justify-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .square {
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        font-size: 3rem;
+        font-weight: 700;
+        border-radius: 0.8rem;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: default;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background-color: #555;
+    }
+
+        .square.x {
+            color: #fbbf24;
+            background-color: #7c4a00;
+            box-shadow: 0 0 10px #fbbf24aa;
+        }
+
+        .square.o {
+            color: #22d3ee;
+            background-color: #004d40;
+            box-shadow: 0 0 10px #22d3eeaa;
+        }
+
+    .btn-radio {
+        display: none;
+    }
+
+    .radio-tile {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        background-color: #555;
+        border-radius: 0.8rem;
+        width: 80px;
+        height: 80px;
+        display: inline-block;
+    }
+
+        .radio-tile:hover {
+            background-color: #666;
+        }
+
+    .btn-radio:checked + .radio-tile {
+        background-color: #22c55e;
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 0 10px #22c55e;
+    }
+
+    .btn-next {
+        background-color: #22c55e;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 0.8rem;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 1rem;
+        box-shadow: 0 4px 10px rgba(34, 197, 94, 0.5);
+    }
+
+        .btn-next:hover {
+            background-color: #16a34a;
+        }
+
+    .winner {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #059669;
+    }
+</style>
+
+<div class="game-container">
+    <form method="post" action="/game/@Model.Id" class="text-center" onsubmit="return validateSelectedCell()">
+        <div class="field-grid">
+            @for (int i = 0; i < Model.GameBoard.BoardMatrix.Count; i++)
+            {
+                for (int j = 0; j < Model.GameBoard.BoardMatrix[i].Count; j++)
+                {
+                    var id = i * 100 + j;
+                    if (Model.GameBoard.BoardMatrix[i][j] == 1)
+                    {
+                        <div class="square x">X</div>
+                    }
+                    else if (Model.GameBoard.BoardMatrix[i][j] == 2)
+                    {
+                        <div class="square o">O</div>
+                    }
+                    else
+                    {
+                        <div>
+                            <input type="radio" name="fieldBox" class="btn-radio" value="@id" id="radio-@id" onclick="toggle(this.value)" />
+                            <label for="radio-@id" class="radio-tile" id="@id"></label>
+                        </div>
+                    }
+                }
+            }
+        </div>
+
+        <input type="hidden" name="selectedCell" id="selectedCell" value="" />
+        <input type="hidden" name="boardMatrixJson" value='@System.Text.Json.JsonSerializer.Serialize(Model.GameBoard.BoardMatrix)' />
+
+        @if (Model.GameOutcome == Domain.Model.GameOutcome.None)
+        {
+            <button type="submit" name="action" value="Next" class="btn-next">Next</button>
+        }
+    </form>
+
+    @if (Model.GameOutcome != Domain.Model.GameOutcome.None)
+    {
+        <div class="winner">
+            @switch (Model.GameOutcome)
+            {
+                case Domain.Model.GameOutcome.FirstPlayerWon:
+                    @:You won!
+                    break;
+                case Domain.Model.GameOutcome.SecondPlayerWon:
+                    @:You lost!
+                    break;
+                case Domain.Model.GameOutcome.Draw:
+                    @:It's a tie!
+                    break;
+            }
+        </div>
+        <form asp-controller="Web" asp-action="NewGame" method="post">
+            <button class="btn-next" type="submit">Restart</button>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const gameOutcome = "@Model.GameOutcome";
+
+        function toggle(value) {
+            document.getElementById('selectedCell').value = value;
+            console.log("Selected cell:", value);
+        }
+
+        function validateSelectedCell() {
+            const value = document.getElementById('selectedCell').value;
+            if (!value && gameOutcome === "None") {
+                alert("Please select a cell before submitting.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+}

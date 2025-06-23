@@ -1,0 +1,8 @@
+*.bin
+*.config
+*.v2
+*.vsidx
+/src/TicTacToe/bin
+/src/TicTacToe/obj/Debug
+/src/TicTacToe/obj
+/src/TicTacToe/.vs
