@@ -7,12 +7,13 @@ namespace TicTacToe.Web.Mapper
     {
         public static Game ToDomain(GameWebDTO dto)
         {
-            var matrix = new int[GameBoard.Size, GameBoard.Size];
+            var matrix = new int[GameBoard.Size][];
             for (int i = 0; i < GameBoard.Size; i++)
             {
+                matrix[i] = new int[GameBoard.Size];
                 for (int j = 0; j < GameBoard.Size; j++)
                 {
-                    matrix[i, j] = dto.GameBoard.BoardMatrix[i][j];
+                    matrix[i][j] = dto.GameBoard.BoardMatrix[i][j];
                 }
             }
 
@@ -27,7 +28,7 @@ namespace TicTacToe.Web.Mapper
                 var row = new List<int>();
                 for (int j = 0; j < GameBoard.Size; j++)
                 {
-                    row.Add(game.Board.BoardMatrix[i, j]);
+                    row.Add(game.Board.BoardMatrix[i][j]);
                 }
                 boardList.Add(row);
             }

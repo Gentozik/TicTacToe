@@ -5,7 +5,7 @@ using TicTacToe.Datasource.Model;
 namespace TicTacToe.Datasource
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/GamesDB")]
     public class GamesDBController : Controller
     {
         private readonly AppDbContext _context;
@@ -21,16 +21,16 @@ namespace TicTacToe.Datasource
             return await _context.Games.ToListAsync();
         }
 
-        // GET: api/games/{id}
-        [HttpGet("{id}")]
+        // GET: api/games/get/{id}
+        [HttpGet("get/{id}")]
         public async Task<ActionResult<GameDTO>> GetGame(Guid id)
         {
             var game = await _context.Games.FindAsync(id);
 
             if (game == null)
-                return RedirectToPage("/Error", new { Code = 404 });
+                return NotFound();
 
-            return game;
+            return Ok(game);
         }
 
         public async Task<GameDTO?> SaveGame(Guid id)
@@ -40,17 +40,20 @@ namespace TicTacToe.Datasource
             return game;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<GameDTO>> CreateGame(GameDTO newGame)
+        [HttpPost("create")]
+        public async Task<ActionResult<GameDTO>> CreateGame()
         {
+            Console.WriteLine("Попытка создать игру в контроллере");
+            var newGame = new GameDTO();
+
             _context.Games.Add(newGame);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetGame), new { id = newGame.Id }, newGame);
         }
 
-        // PUT: api/games/{id}
-        [HttpPut("{id}")]
+        // PUT: api/games/update/{id}
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateGame(Guid id, GameDTO updatedGame)
         {
             if (id != updatedGame.Id)

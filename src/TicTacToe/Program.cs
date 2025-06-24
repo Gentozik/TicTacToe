@@ -11,6 +11,16 @@ namespace TicTacToe
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenLocalhost(5195, listenOptions =>
+                {
+                    listenOptions.UseHttps();
+                });
+
+                options.ListenLocalhost(5194);
+            });
+
             builder.Services.AddRazorPages();
             builder.Services.AddDependencies();
             builder.Services.AddControllersWithViews();

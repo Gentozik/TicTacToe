@@ -1,5 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Text;
 using System.Text.Json;
+using TicTacToe.Datasource;
+using TicTacToe.Datasource.Mapper;
+using TicTacToe.Datasource.Model;
 using TicTacToe.Domain.Model;
 using TicTacToe.Domain.Service;
 using TicTacToe.Web.Mapper;
@@ -16,24 +21,48 @@ public class WebController(IGameService gameService) : Controller
     [Route("new")]
     public async Task<IActionResult> NewGame()
     {
-        Game game = new();
-        await _gameService.SaveGame(game);
-        return RedirectToAction("GetGame", new { guid = game.Id });
-    }
+        //Console.WriteLine("[WebController]: Попытка создания игры");
+        using var client = new HttpClient();
+        var response = await client.PostAsync("http://localhost:5194/api/GamesDB/create", null);
 
-    [HttpGet("{guid}")]
-    public async Task<ActionResult<GameWebDTO>> GetGame(Guid guid)
-    {
-        Game? game = await _gameService.GetGame(guid);
-
-        if (game == null)
+        if (response.IsSuccessStatusCode)
         {
-            return RedirectToPage("/Error", new { Code = 404 });
+            var result = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(result);
+            var game = JsonSerializer.Deserialize<GameDTO>(result, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            //Console.WriteLine($"[WebController]: Игра создана, Id: {game.Id}");
+            return RedirectToAction("GetGame", new { guid = game.Id });
         }
         else
         {
-            GameWebDTO gameWebDTO = DomainToWebMapper.ToWeb(game);
-            return View(gameWebDTO);
+            Console.WriteLine($"[WebController]: Ошибка создания игры");
+            return RedirectToPage("/Error", new { Code = 404 });
+        }
+    }
+
+    [HttpGet("{guid}")]
+    public async Task<IActionResult> GetGame(Guid guid)
+    {
+        using var client = new HttpClient();
+        var response = await client.GetAsync($"http://localhost:5194/api/GamesDB/get/{guid}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadAsStringAsync();
+            var game = JsonSerializer.Deserialize<GameDTO>(result, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return View(DomainToWebMapper.ToWeb(DomainToDtoMapper.ToDomain(game)));
+        }
+        else
+        {
+            Console.WriteLine($"[WebController]: Ошибка получения игры");
+            return RedirectToPage("/Error", new { Code = 404 });
         }
     }
 
@@ -42,6 +71,7 @@ public class WebController(IGameService gameService) : Controller
     {
         if (string.IsNullOrEmpty(action) || string.IsNullOrEmpty(selectedCell) || string.IsNullOrEmpty(boardMatrixJson))
         {
+            Console.WriteLine($"[WebController]: Ошибка принятия запроса на ход");
             return RedirectToPage("/Error", new { Code = 400 });
         }
 
@@ -61,28 +91,27 @@ public class WebController(IGameService gameService) : Controller
         int row = selectedCellInt / 100;
         int col = selectedCellInt % 100;
 
-        if (row < 0 || row >= GameBoard.Size || col < 0 || col >= GameBoard.Size)
+        if (_gameService.IsBoardValid(game, row, col).Result == false)
         {
+            Console.WriteLine($"[WebController]: Невалидная доска");
             return RedirectToPage("/Error", new { Code = 400 });
         }
-
-        game.Board.BoardMatrix[row, col] = (int)PlayerEnum.FirstPlayer;
-
-        if (_gameService.IsBoardValid(id, game).Result == false)
+        else
         {
-            return RedirectToPage("/Error", new { Code = 400 });
+            game.Board.BoardMatrix[row][col] = (int)PlayerEnum.FirstPlayer;
         }
-
-        await _gameService.SaveGame(game);
 
         game.GameOutcome = _gameService.HasGameEnded(game);
         if (game.GameOutcome == GameOutcome.None)
         {
-            game = await _gameService.GetNextMove(game.Id);
+            game = await _gameService.GetNextMove(game);
             game.GameOutcome = _gameService.HasGameEnded(game);
         }
 
-        await _gameService.SaveGame(game);
+        using var client = new HttpClient();
+        var json = JsonSerializer.Serialize(DomainToDtoMapper.ToDTO(game));
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        await client.PutAsync($"http://localhost:5194/api/GamesDB/update/{game.Id}", content);
 
         return RedirectToAction("GetGame", new { guid = game.Id });
     }

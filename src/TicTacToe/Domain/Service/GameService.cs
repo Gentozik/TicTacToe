@@ -15,9 +15,8 @@ namespace TicTacToe.Domain.Service
         {
             await _repository.Save(game);
         }
-        public async Task<Game?> GetNextMove(Guid id)
+        public async Task<Game?> GetNextMove(Game game)
         {
-            Game? game = await _repository.Get(id);
 
             if (game != null)
             {
@@ -29,11 +28,11 @@ namespace TicTacToe.Domain.Service
                 {
                     for (int j = 0; j < GameBoard.Size; j++)
                     {
-                        if (game.Board.BoardMatrix[i, j] == 0)
+                        if (game.Board.BoardMatrix[i][j] == 0)
                         {
-                            game.Board.BoardMatrix[i, j] = (int)PlayerEnum.SecondPlayer;
+                            game.Board.BoardMatrix[i][j] = (int)PlayerEnum.SecondPlayer;
                             int result = MinMaxCalculate(game, (int)PlayerEnum.FirstPlayer);
-                            game.Board.BoardMatrix[i, j] = (int)PlayerEnum.None;
+                            game.Board.BoardMatrix[i][j] = (int)PlayerEnum.None;
 
                             if (result > bestScore)
                             {
@@ -44,7 +43,7 @@ namespace TicTacToe.Domain.Service
                         }
                     }
                 }
-                game.Board.BoardMatrix[bestRow, bestCol] = (int)PlayerEnum.SecondPlayer;
+                game.Board.BoardMatrix[bestRow][bestCol] = (int)PlayerEnum.SecondPlayer;
             }
 
             return game;
@@ -64,11 +63,11 @@ namespace TicTacToe.Domain.Service
             {
                 for (int j = 0; j < GameBoard.Size; j++)
                 {
-                    if (game.Board.BoardMatrix[i, j] == (int)PlayerEnum.None)
+                    if (game.Board.BoardMatrix[i][j] == (int)PlayerEnum.None)
                     {
-                        game.Board.BoardMatrix[i, j] = currentPlayer;
+                        game.Board.BoardMatrix[i][j] = currentPlayer;
                         int score = MinMaxCalculate(game, currentPlayer == (int)PlayerEnum.FirstPlayer ? (int)PlayerEnum.SecondPlayer : (int)PlayerEnum.FirstPlayer);
-                        game.Board.BoardMatrix[i, j] = (int)PlayerEnum.None;
+                        game.Board.BoardMatrix[i][j] = (int)PlayerEnum.None;
 
                         if (currentPlayer == (int)PlayerEnum.SecondPlayer)
                             bestScore = Math.Max(score, bestScore);
@@ -90,7 +89,7 @@ namespace TicTacToe.Domain.Service
 
             for (int i = 0; i < GameBoard.Size; i++)
                 for (int j = 0; j < GameBoard.Size; j++)
-                    if (game.Board.BoardMatrix[i, j] == (int)PlayerEnum.None)
+                    if (game.Board.BoardMatrix[i][j] == (int)PlayerEnum.None)
                         return GameOutcome.None;
 
             return GameOutcome.Draw;
@@ -100,70 +99,53 @@ namespace TicTacToe.Domain.Service
         {
             for (int i = 0; i < GameBoard.Size; i++)
             {
-                if (game.Board.BoardMatrix[i, 0] != (int)PlayerEnum.None &&
-                    game.Board.BoardMatrix[i, 0] == game.Board.BoardMatrix[i, 1] &&
-                    game.Board.BoardMatrix[i, 1] == game.Board.BoardMatrix[i, 2])
+                if (game.Board.BoardMatrix[i][0] != (int)PlayerEnum.None &&
+                    game.Board.BoardMatrix[i][0] == game.Board.BoardMatrix[i][1] &&
+                    game.Board.BoardMatrix[i][1] == game.Board.BoardMatrix[i][2])
                 {
-                    return game.Board.BoardMatrix[i, 0] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
+                    return game.Board.BoardMatrix[i][0] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
                 }
             }
 
             for (int j = 0; j < GameBoard.Size; j++)
             {
-                if (game.Board.BoardMatrix[0, j] != (int)PlayerEnum.None &&
-                    game.Board.BoardMatrix[0, j] == game.Board.BoardMatrix[1, j] &&
-                    game.Board.BoardMatrix[1, j] == game.Board.BoardMatrix[2, j])
+                if (game.Board.BoardMatrix[0][j] != (int)PlayerEnum.None &&
+                    game.Board.BoardMatrix[0][j] == game.Board.BoardMatrix[1][j] &&
+                    game.Board.BoardMatrix[1][j] == game.Board.BoardMatrix[2][j])
                 {
-                    return game.Board.BoardMatrix[0, j] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
+                    return game.Board.BoardMatrix[0][j] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
                 }
             }
 
-            if (game.Board.BoardMatrix[0, 0] != (int)PlayerEnum.None &&
-                game.Board.BoardMatrix[0, 0] == game.Board.BoardMatrix[1, 1] &&
-                game.Board.BoardMatrix[1, 1] == game.Board.BoardMatrix[2, 2])
+            if (game.Board.BoardMatrix[0][0] != (int)PlayerEnum.None &&
+                game.Board.BoardMatrix[0][0] == game.Board.BoardMatrix[1][1] &&
+                game.Board.BoardMatrix[1][1] == game.Board.BoardMatrix[2][2])
             {
-                return game.Board.BoardMatrix[0, 0] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
+                return game.Board.BoardMatrix[0][0] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
             }
 
-            if (game.Board.BoardMatrix[0, 2] != (int)PlayerEnum.None &&
-                game.Board.BoardMatrix[0, 2] == game.Board.BoardMatrix[1, 1] &&
-                game.Board.BoardMatrix[1, 1] == game.Board.BoardMatrix[2, 0])
+            if (game.Board.BoardMatrix[0][0] != (int)PlayerEnum.None &&
+                game.Board.BoardMatrix[0][2] == game.Board.BoardMatrix[1][1] &&
+                game.Board.BoardMatrix[1][1] == game.Board.BoardMatrix[2][0])
             {
-                return game.Board.BoardMatrix[0, 2] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
+                return game.Board.BoardMatrix[0][2] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
             }
 
             return GameOutcome.None;
         }
 
-        public async Task<bool> IsBoardValid(Guid guid, Game gameWithNextMove)
+        public async Task<bool> IsBoardValid(Game game, int row, int col)
         {
-            int emptyCellsDifference = 0;
-
-            Game? game = await _repository.Get(guid);
-
             if (game == null)
             {
                 return false;
             }
-
-            for (int i = 0; i < GameBoard.Size; i++)
+            else if(row < 0 || row >= GameBoard.Size || col < 0 || col >= GameBoard.Size)
             {
-                for (int j = 0; j < GameBoard.Size; j++)
-                {
-                    if (game.Board.BoardMatrix[i, j] == (int)PlayerEnum.None)
-                    {
-                        emptyCellsDifference++;
-                    }
-                    if (gameWithNextMove.Board.BoardMatrix[i, j] == (int)PlayerEnum.None)
-                    {
-                        emptyCellsDifference--;
-                    }
-                }
+                return false;
             }
 
-            bool result = emptyCellsDifference == 1;
-
-            return result;
+            return true;
         }
     }
 }
