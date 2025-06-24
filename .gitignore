@@ -6,3 +6,4 @@
 /src/TicTacToe/obj/Debug
 /src/TicTacToe/obj
 /src/TicTacToe/.vs
+*.json

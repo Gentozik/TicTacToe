@@ -1,19 +1,17 @@
-﻿using TicTacToe.Domain.Model;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TicTacToe.Datasource.Model
+[ComplexType]
+public class GameBoardDTO
 {
-    public class GameBoardDTO
+    public int[,] BoardMatrix { get; private set; }
+
+    public GameBoardDTO()
     {
-        public int[,] BoardMatrix { get; private set; }
+        BoardMatrix = new int[3, 3];
+    }
 
-        public GameBoardDTO()
-        {
-            BoardMatrix = new int[GameBoard.Size, GameBoard.Size];
-        }
-
-        public GameBoardDTO(int[,] board)
-        {
-            BoardMatrix = board;
-        }
+    public GameBoardDTO(int[,] board)
+    {
+        BoardMatrix = board;
     }
 }

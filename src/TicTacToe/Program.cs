@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using TicTacToe.Datasource.Model;
 using TicTacToe.DI;
+using TicTacToe.Domain.Service;
 
 namespace TicTacToe
 {
@@ -11,6 +14,8 @@ namespace TicTacToe
             builder.Services.AddRazorPages();
             builder.Services.AddDependencies();
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
