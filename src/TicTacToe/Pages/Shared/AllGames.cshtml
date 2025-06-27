@@ -1,0 +1,116 @@
+﻿@model List<TicTacToe.Web.Model.GameWebDTO>
+
+@{
+    ViewData["Title"] = "Список игр";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #2c2c2c;
+        margin: 0;
+        color: #e0e0e0;
+    }
+
+    .games-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        background: #3a3a3a;
+        border-radius: 1rem;
+        padding: 1rem 2rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .games-scrollable {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .game-card {
+        background: #4b4b4b;
+        border-radius: 0.6rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .game-info {
+        flex-grow: 1;
+    }
+
+        .game-info h4 {
+            margin: 0 0 0.3rem 0;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .game-info p {
+            margin: 0 0 0.7rem 0;
+        }
+
+    .btn-view-game {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #2563eb;
+        color: white;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+        margin-right: 0.5rem;
+    }
+
+        .btn-view-game:hover {
+            background-color: #1d4ed8;
+        }
+
+    .btn-delete-game {
+        padding: 0.5rem 1rem;
+        background-color: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-delete-game:hover {
+            background-color: #b91c1c;
+        }
+</style>
+
+<div class="games-container">
+    <h2>Список игр</h2>
+    <div class="games-scrollable">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var game in Model)
+            {
+                <div class="game-card">
+                    <div class="game-info">
+                        <h4>Game ID: @game.Id</h4>
+                        <p>Outcome: @game.GameOutcome</p>
+                    </div>
+
+                    <div class="game-actions">
+                        <a asp-controller="Web" asp-action="GetGame" asp-route-guid="@game.Id" class="btn-view-game">Смотреть игру</a>
+
+                        <form asp-controller="Web" asp-action="DeleteGame" asp-route-id="@game.Id" method="post" style="display:inline;">
+                            <button type="submit" onclick="return confirm('Удалить эту игру?');">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>Игры не найдены.</p>
+        }
+    </div>
+</div>

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Text;
 using System.Text.Json;
-using TicTacToe.Datasource;
 using TicTacToe.Datasource.Mapper;
 using TicTacToe.Datasource.Model;
 using TicTacToe.Domain.Model;
@@ -114,5 +114,50 @@ public class WebController(IGameService gameService) : Controller
         await client.PutAsync($"http://localhost:5194/api/GamesDB/update/{game.Id}", content);
 
         return RedirectToAction("GetGame", new { guid = game.Id });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> AllGames()
+    {
+        using var client = new HttpClient();
+        var response = await client.GetAsync("http://localhost:5194/api/GamesDB/getList");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            var dtoList = JsonSerializer.Deserialize<List<GameDTO>>(json);
+
+            // Преобразование GameDTO → GameWebDTO
+            var webList = new List<GameWebDTO>();
+            var domainList = new List<Game>();
+            foreach (var dto in dtoList)
+            {
+                webList.Add(DomainToWebMapper.ToWeb(DomainToDtoMapper.ToDomain(dto)));
+                domainList.Add(DomainToDtoMapper.ToDomain(dto));
+            }
+
+            return View(webList);
+        }
+
+        return RedirectToPage("/Error", new { Code = 404 });
+    }
+
+    [HttpPost]
+    [Route("delete/{id}")]
+    public async Task<IActionResult> DeleteGame(Guid id)
+    {
+        //Console.WriteLine("[WebController]: Попытка создания игры");
+        using var client = new HttpClient();
+        var response = await client.DeleteAsync($"http://localhost:5194/api/GamesDB/delete/{id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            return RedirectToAction("AllGames");
+        }
+        else
+        {
+            Console.WriteLine($"[WebController]: Ошибка удаления игры");
+            return RedirectToPage("/Error", new { Code = 404 });
+        }
     }
 }

@@ -2,19 +2,8 @@
 
 namespace TicTacToe.Domain.Service
 {
-    public class GameService(IGameRepository repository) : IGameService
+    public class GameService() : IGameService
     {
-        private readonly IGameRepository _repository = repository;
-
-        public async Task<Game?> GetGame(Guid id)
-        {
-            return await _repository.Get(id);
-        }
-
-        public async Task SaveGame(Game game)
-        {
-            await _repository.Save(game);
-        }
         public async Task<Game?> GetNextMove(Game game)
         {
 

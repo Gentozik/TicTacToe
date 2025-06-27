@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TicTacToe.Pages.Shared
 {
-    public class GetGameModel : PageModel
+    public class AllGamesModel : PageModel
     {
-        private readonly ILogger<GetGameModel> _logger;
+        private readonly ILogger<AllGamesModel> _logger;
 
-        public GetGameModel(ILogger<GetGameModel> logger)
+        public AllGamesModel(ILogger<AllGamesModel> logger)
         {
             _logger = logger;
         }
