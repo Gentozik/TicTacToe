@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TicTacToe.Datasource.Model;
@@ -11,9 +12,11 @@ using TicTacToe.Datasource.Model;
 namespace TicTacToe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppGameDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250627113306_AddUserTable")]
+    partial class AddUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,35 +36,9 @@ namespace TicTacToe.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Relational:JsonPropertyName", "gameOutcome");
 
-                    b.Property<Guid?>("PlayerOId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "playerOId");
-
-                    b.Property<Guid>("PlayerXId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "playerXId");
-
                     b.HasKey("Id");
 
                     b.ToTable("Games");
-                });
-
-            modelBuilder.Entity("TicTacToe.Datasource.Model.UserDTO", b =>
-                {
-                    b.Property<string>("Uuid")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Login")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Uuid");
-
-                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("TicTacToe.Datasource.Model.GameDTO", b =>

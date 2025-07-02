@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TicTacToe.Datasource.Model;
@@ -11,9 +12,11 @@ using TicTacToe.Datasource.Model;
 namespace TicTacToe.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppGameDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250627114943_AddUserTableDb3")]
+    partial class AddUserTableDb3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,14 +35,6 @@ namespace TicTacToe.Migrations
                     b.Property<int>("GameOutcome")
                         .HasColumnType("integer")
                         .HasAnnotation("Relational:JsonPropertyName", "gameOutcome");
-
-                    b.Property<Guid?>("PlayerOId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "playerOId");
-
-                    b.Property<Guid>("PlayerXId")
-                        .HasColumnType("uuid")
-                        .HasAnnotation("Relational:JsonPropertyName", "playerXId");
 
                     b.HasKey("Id");
 

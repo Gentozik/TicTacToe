@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TicTacToe.Datasource.Model;
 using TicTacToe.DI;
-using TicTacToe.Domain.Service;
 
 namespace TicTacToe
 {
@@ -20,6 +19,13 @@ namespace TicTacToe
 
                 options.ListenLocalhost(5194);
             });
+
+            builder.Services.AddAuthentication("Cookies").AddCookie("Cookies", options =>
+            {
+                options.LoginPath = "/";
+            });
+
+            builder.Services.AddAuthorization();
 
             builder.Services.AddRazorPages();
             builder.Services.AddDependencies();
@@ -41,6 +47,7 @@ namespace TicTacToe
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapRazorPages();

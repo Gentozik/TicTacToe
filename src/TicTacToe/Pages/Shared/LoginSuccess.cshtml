@@ -1,0 +1,68 @@
+﻿@model LoginSuccessModel
+@{
+    ViewData["Title"] = "Welcome!";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #2c2c2c;
+        margin: 0;
+        color: #e0e0e0;
+    }
+
+    .success-container {
+        background: #3a3a3a;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        margin: 4rem auto;
+        color: #e0e0e0;
+    }
+
+    .header {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #60a5fa;
+        margin-bottom: 2rem;
+    }
+
+    .btn {
+        background-color: #60a5fa;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 0.8rem;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin: 0.5rem;
+    }
+
+        .btn:hover {
+            background-color: #3b82f6;
+        }
+</style>
+
+<div class="success-container">
+    <p class="header">Welcome, user @Model.UserId!</p>
+
+    <form asp-controller="Web" asp-action="NewGame" method="post">
+        <button class="btn" type="submit">Start New Solo Game</button>
+    </form>
+
+    <form asp-controller="Web" asp-action="NewGameMulti" method="post">
+        <button class="btn" type="submit">Start New Multi Game</button>
+    </form>
+
+    <form asp-controller="Web" asp-action="AllGames" method="get">
+        <button class="btn" type="submit">View All Games</button>
+    </form>
+
+    <form asp-controller="Web" asp-action="Logout" method="post">
+        <button class="btn" type="submit">Logout</button>
+    </form>
+</div>

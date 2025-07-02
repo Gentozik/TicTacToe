@@ -1,7 +1,23 @@
-﻿@{
+﻿@model TicTacToe.Web.Model.GameWebDTO
+@{
     ViewData["Title"] = "Tic-Tac-Toe";
+
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    Guid.TryParse(currentUserId, out var currentUserGuid);
+
+    bool isMultiplayer = Model.PlayerOId.HasValue && Model.PlayerOId.Value != Guid.Empty;
+    bool isSolo = !isMultiplayer;
+    bool isPlayerX = currentUserGuid == Model.PlayerXId;
+    bool isPlayerO = currentUserGuid == Model.PlayerOId;
+    bool isCurrentPlayer = isSolo
+        || (Model.GameOutcome == Domain.Model.GameOutcome.FirstPlayerTurn && isPlayerX)
+        || (Model.GameOutcome == Domain.Model.GameOutcome.SecondPlayerTurn && isPlayerO);
+
+    bool waitingForPlayers = Model.GameOutcome == Domain.Model.GameOutcome.WaitingForPlayers;
+    bool gameEnded = Model.GameOutcome is Domain.Model.GameOutcome.Draw
+                                        or Domain.Model.GameOutcome.FirstPlayerWon
+                                        or Domain.Model.GameOutcome.SecondPlayerWon;
 }
-@model TicTacToe.Web.Model.GameWebDTO
 
 <style>
     body {
@@ -109,59 +125,73 @@
 </style>
 
 <div class="game-container">
-    <form method="post" action="/game/@Model.Id" class="text-center" onsubmit="return validateSelectedCell()">
-        <div class="field-grid">
-            @for (int i = 0; i < Model.GameBoard.BoardMatrix.Count; i++)
-            {
-                for (int j = 0; j < Model.GameBoard.BoardMatrix[i].Count; j++)
-                {
-                    var id = i * 100 + j;
-                    if (Model.GameBoard.BoardMatrix[i][j] == 1)
-                    {
-                        <div class="square x">X</div>
-                    }
-                    else if (Model.GameBoard.BoardMatrix[i][j] == 2)
-                    {
-                        <div class="square o">O</div>
-                    }
-                    else
-                    {
-                        <div>
-                            <input type="radio" name="fieldBox" class="btn-radio" value="@id" id="radio-@id" onclick="toggle(this.value)" />
-                            <label for="radio-@id" class="radio-tile" id="@id"></label>
-                        </div>
-                    }
-                }
-            }
-        </div>
-
-        <input type="hidden" name="selectedCell" id="selectedCell" value="" />
-        <input type="hidden" name="boardMatrixJson" value='@System.Text.Json.JsonSerializer.Serialize(Model.GameBoard.BoardMatrix)' />
-
-        @if (Model.GameOutcome == Domain.Model.GameOutcome.None)
+    @if (!isMultiplayer || (isMultiplayer && isPlayerX || isPlayerO))
+    {
+        @if (waitingForPlayers)
         {
-            <button type="submit" name="action" value="Next" class="btn-next">Next</button>
+            <p>Ожидание второго игрока...</p>
         }
-    </form>
+        else
+        {
+            <form method="post" action="/game/@Model.Id" class="text-center" onsubmit="return validateSelectedCell()">
+                <div class="field-grid">
+                    @for (int i = 0; i < Model.GameBoard.BoardMatrix.Count; i++)
+                    {
+                        for (int j = 0; j < Model.GameBoard.BoardMatrix[i].Count; j++)
+                        {
+                            var id = i * 100 + j;
+                            if (Model.GameBoard.BoardMatrix[i][j] == 1)
+                            {
+                                <div class="square x">X</div>
+                            }
+                            else if (Model.GameBoard.BoardMatrix[i][j] == 2)
+                            {
+                                <div class="square o">O</div>
+                            }
+                            else
+                            {
+                                <div>
+                                    <input type="radio" name="fieldBox" class="btn-radio" value="@id" id="radio-@id" onclick="toggle(this.value)" @(isCurrentPlayer ? "" : "disabled") />
+                                    <label for="radio-@id" class="radio-tile" id="@id"></label>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
 
-    @if (Model.GameOutcome != Domain.Model.GameOutcome.None)
+                <input type="hidden" name="selectedCell" id="selectedCell" value="" />
+                <input type="hidden" name="boardMatrixJson" value='@System.Text.Json.JsonSerializer.Serialize(Model.GameBoard.BoardMatrix)' />
+
+                @if (!gameEnded && isCurrentPlayer)
+                {
+                    <button type="submit" name="action" value="Next" class="btn-next">Next</button>
+                }
+            </form>
+        }
+    }
+    else
+    {
+        <p>Вы не участник этой игры.</p>
+    }
+
+    @if (gameEnded)
     {
         <div class="winner">
             @switch (Model.GameOutcome)
             {
                 case Domain.Model.GameOutcome.FirstPlayerWon:
-                    @:You won!
+                    <text>Игрок X победил!</text>
                     break;
                 case Domain.Model.GameOutcome.SecondPlayerWon:
-                    @:You lost!
+                    <text>Игрок O победил!</text>
                     break;
                 case Domain.Model.GameOutcome.Draw:
-                    @:It's a tie!
+                    <text>Ничья!</text>
                     break;
             }
         </div>
         <form asp-controller="Web" asp-action="NewGame" method="post">
-            <button class="btn-next" type="submit">Restart</button>
+            <button class="btn-next" type="submit">Новая игра</button>
         </form>
     }
 </div>

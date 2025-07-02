@@ -17,7 +17,7 @@ namespace TicTacToe.Web.Mapper
                 }
             }
 
-            return new Game(dto.Id, new GameBoard(matrix), dto.GameOutcome);
+            return new Game(dto.Id, new GameBoard(matrix), dto.GameOutcome, dto.PlayerXId, dto.PlayerOId);
         }
 
         public static GameWebDTO ToWeb(Game game)

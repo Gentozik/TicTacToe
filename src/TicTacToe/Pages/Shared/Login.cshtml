@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<style>
+    .login-container {
+        background: #3a3a3a;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        max-width: 360px;
+        width: 100%;
+        text-align: center;
+        margin: 4rem auto;
+        color: #e0e0e0;
+    }
+
+    .header {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #60a5fa;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+        text-align: left;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.4rem;
+    }
+
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 0.6rem;
+        border: none;
+        border-radius: 0.5rem;
+        background-color: #525252;
+        color: #fff;
+    }
+
+    .btn-login {
+        background-color: #22c55e;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 0.8rem;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        box-shadow: 0 4px 10px rgba(34, 197, 94, 0.5);
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+        .btn-login:hover {
+            background-color: #16a34a;
+        }
+
+    .error-message {
+        color: #f87171;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="login-container">
+    <p class="header">Login</p>
+
+    <form asp-controller="Web" asp-action="Login" method="post">
+        <div class="form-group">
+            <label for="login">Login:</label>
+            <input type="text" id="login" name="login" required />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required />
+        </div>
+
+        <button type="submit" class="btn-login">Log In</button>
+    </form>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="error-message">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+</div>

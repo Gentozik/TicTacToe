@@ -5,6 +5,9 @@
         None,
         Draw,
         FirstPlayerWon,
-        SecondPlayerWon
+        SecondPlayerWon,
+        WaitingForPlayers,
+        FirstPlayerTurn,
+        SecondPlayerTurn
     }
 }

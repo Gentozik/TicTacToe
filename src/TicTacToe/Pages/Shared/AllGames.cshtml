@@ -99,7 +99,10 @@
                     </div>
 
                     <div class="game-actions">
-                        <a asp-controller="Web" asp-action="GetGame" asp-route-guid="@game.Id" class="btn-view-game">Смотреть игру</a>
+                        <form asp-controller="Web" asp-action="JoinGame" method="post">
+                            <input type="hidden" name="id" value="@game.Id" />
+                            <button class="btn-view-game" type="submit">Присоединиться к игре</button>
+                        </form>
 
                         <form asp-controller="Web" asp-action="DeleteGame" asp-route-id="@game.Id" method="post" style="display:inline;">
                             <button type="submit" onclick="return confirm('Удалить эту игру?');">Удалить</button>
