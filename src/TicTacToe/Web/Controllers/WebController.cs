@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -95,7 +94,6 @@ public class WebController(IGameService gameService) : Controller
     public async Task<IActionResult> UpdateGame(Guid id, string action, string selectedCell, string boardMatrixJson)
     {
         using var client = new HttpClient();
-
         if (string.IsNullOrEmpty(action) || string.IsNullOrEmpty(selectedCell) || string.IsNullOrEmpty(boardMatrixJson))
         {
             Console.WriteLine($"[WebController]: Ошибка принятия запроса на ход");
@@ -145,8 +143,8 @@ public class WebController(IGameService gameService) : Controller
         var isMultiplayer = game.PlayerOId.HasValue && game.PlayerOId.Value != Guid.Empty;
         var currentOutcome = game.GameOutcome;
 
-        if ((currentOutcome == GameOutcome.FirstPlayerTurn && currentUserId == game.PlayerOId) ||
-            (currentOutcome == GameOutcome.SecondPlayerTurn && currentUserId == game.PlayerXId))
+        if (/*(currentOutcome == GameOutcome.FirstPlayerTurn && currentUserId == game.PlayerOId) ||
+            (currentOutcome == GameOutcome.SecondPlayerTurn && currentUserId == game.PlayerXId)*/true)
         {
             game.Board.BoardMatrix[row][col] = currentOutcome == GameOutcome.FirstPlayerTurn ? 1 : 2;
 
@@ -226,6 +224,7 @@ public class WebController(IGameService gameService) : Controller
     [HttpPost("user/register")]
     public async Task<IActionResult> Register(string login, string password)
     {
+
         var signUpRequest = new SignUpRequest{
             Login = login,
             Password = password
@@ -263,30 +262,40 @@ public class WebController(IGameService gameService) : Controller
     [HttpPost("user/login")]
     public async Task<IActionResult> Login(string login, string password)
     {
-        var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{login}:{password}"));
+        /*var signUpRequest = new SignUpRequest
+        {
+            Login = login,
+            Password = password
+        };
+
+        var json = JsonSerializer.Serialize(signUpRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");*/
+
+        string credentials = $"{login}:{password}";
+        string base64Credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
+        var emptyContent = new StringContent(string.Empty);
+
         using var client = new HttpClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
+        var response = await client.PostAsync("http://localhost:5194/api/users/authorize", emptyContent);
 
-        var response = await client.PostAsync("https://localhost:5194/api/users/authorize", null);
-        if (!response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
         {
-            ModelState.AddModelError("", "Неверный логин или пароль");
+            var userIdString = await response.Content.ReadAsStringAsync();
+            Guid.TryParse(userIdString, out var userId);
+
+            return RedirectToAction("LoginSuccess", new { userId });
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            ModelState.AddModelError(string.Empty, "Неверный логин или пароль");
             return View();
         }
-
-        var userIdString = await response.Content.ReadAsStringAsync();
-        if (!Guid.TryParse(userIdString, out var userId))
+        else
         {
-            ModelState.AddModelError("", "Ошибка авторизации");
+            ModelState.AddModelError(string.Empty, "Ошибка авторизации");
             return View();
         }
-
-        var claims = new List<Claim> {
-        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-        new Claim(ClaimTypes.Name, login),
-    };
-        await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(new ClaimsIdentity(claims, "Cookies")));
-        return RedirectToAction("LoginSuccess", new { userId });
     }
 
     [HttpGet]
@@ -306,15 +315,10 @@ public class WebController(IGameService gameService) : Controller
     [HttpPost("JoinGame")]
     public async Task<IActionResult> JoinGame(Guid id)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!Guid.TryParse(userIdString, out var userId))
-            return RedirectToPage("/Error", new { Code = 403 });
-
         using var client = new HttpClient();
-        var content = new StringContent(JsonSerializer.Serialize(userId), Encoding.UTF8, "application/json");
+        var emptyContent = new StringContent(string.Empty);
 
-        var response = await client.PostAsync($"http://localhost:5194/api/GamesDB/join/{id}", content);
+        var response = await client.PostAsync($"http://localhost:5194/api/GamesDB/join/{id}", emptyContent);
 
         if (response.IsSuccessStatusCode)
         {

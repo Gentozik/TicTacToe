@@ -54,6 +54,7 @@ namespace TicTacToe.Datasource
         {
             Console.WriteLine("Попытка создать соло игру в контроллере");
 
+            /* Заменить на взятие из заголовка */
             Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userIdGuid);
             var newGame = new Game(userIdGuid, Guid.Empty);
             Console.WriteLine("Authenticated: " + User.Identity?.IsAuthenticated);
@@ -71,6 +72,8 @@ namespace TicTacToe.Datasource
         {
             Console.WriteLine("Попытка создать мультиплеерную игру в контроллере");
 
+
+            /* Заменить на взятие из заголовка */
             Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userIdGuid);
             var newGame = new Game(userIdGuid, null);
 

@@ -10,17 +10,6 @@ namespace TicTacToe.DI
             services.AddSingleton<GameStorage>();
             services.AddScoped<IGameService, GameService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<AuthFilter>();
-
-            services.AddControllers(config =>
-            {
-                config.Filters.Add<AuthFilter>();
-            });
-
-            services.AddMvc(options =>
-            {
-                options.Filters.Add<AuthFilter>();
-            }).ConfigureApplicationPartManager(m => m.FeatureProviders.Clear());
 
             return services;
         }

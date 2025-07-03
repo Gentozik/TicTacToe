@@ -1,47 +1,44 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
+using TicTacToe.Datasource.Model;
 using TicTacToe.Domain.Model;
 using TicTacToe.Services;
 
-[ApiController]
-[Route("api/users")]
-public class UsersController : ControllerBase
+namespace TicTacToe.Datasource
 {
-    private readonly IUserService _userService;
-
-    public UsersController(IUserService userService) => _userService = userService;
-
-    [AllowAnonymous]
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] SignUpRequest request)
+    [ApiController]
+    [Route("api/users")]
+    public class UserAuthController : Controller
     {
-        var user = await _userService.RegisterUserAsync(request.Login, request.Password);
-        return Ok(user.Uuid);
-    }
+        private readonly IUserService _userService;
 
-    [AllowAnonymous]
-    [HttpPost("authorize")]
-    public async Task<IActionResult> Authorize()
-    {
-        if (!Request.Headers.TryGetValue("Authorization", out var authHeader))
-            return Unauthorized();
+        public UserAuthController(IUserService userService)
+        {
+            _userService = userService;
+        }
 
-        var encoded = authHeader.ToString().Replace("Basic ", "", StringComparison.OrdinalIgnoreCase).Trim();
-        var decodedBytes = Convert.FromBase64String(encoded);
-        var decodedString = Encoding.UTF8.GetString(decodedBytes);
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] SignUpRequest request)
+        {
+            var user = await _userService.RegisterUserAsync(request.Login, request.Password);
+            return Ok();
+        }
 
-        var parts = decodedString.Split(':', 2);
-        if (parts.Length != 2)
-            return Unauthorized();
+        [HttpPost("authorize")]
+        public async Task<IActionResult> Authorize()
+        {
 
-        var login = parts[0];
-        var password = parts[1];
+            if (!Request.Headers.ContainsKey("Authorization"))
+            {
+                return Unauthorized();
+            }
 
-        var user = await _userService.AuthorizeUserAsync(login, password);
-        if (user == null)
-            return Unauthorized();
-
-        return Ok(user.Uuid);
+            //var user = await _userService.AuthorizeUserAsync(request.Login, request.Password);
+            //if (user == null)
+            //    return Unauthorized();
+            //return Ok(user.Uuid);
+            return Ok();
+        }
     }
 }
