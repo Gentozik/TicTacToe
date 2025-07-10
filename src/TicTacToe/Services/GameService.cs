@@ -1,9 +1,14 @@
-﻿using TicTacToe.Domain.Model;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TicTacToe.Datasource.Mapper;
+using TicTacToe.Datasource.Model;
+using TicTacToe.Domain.Model;
 
 namespace TicTacToe.Services
 {
-    public class GameService() : IGameService
+    public class GameService(AppDbContext context) : IGameService
     {
+        private readonly AppDbContext _context = context;
         public async Task<Game?> GetNextMove(Game game)
         {
 
@@ -73,13 +78,13 @@ namespace TicTacToe.Services
         public GameOutcome HasGameEnded(Game game)
         {
             var winner = FindGameWinner(game);
-            if (winner != GameOutcome.None)
+            if (winner == GameOutcome.FirstPlayerWon || winner == GameOutcome.SecondPlayerWon)
                 return winner;
 
             for (int i = 0; i < GameBoard.Size; i++)
                 for (int j = 0; j < GameBoard.Size; j++)
                     if (game.Board.BoardMatrix[i][j] == (int)PlayerEnum.None)
-                        return GameOutcome.None;
+                        return game.GameOutcome;
 
             return GameOutcome.Draw;
         }
@@ -120,7 +125,7 @@ namespace TicTacToe.Services
                 return game.Board.BoardMatrix[0][2] == (int)PlayerEnum.FirstPlayer ? GameOutcome.FirstPlayerWon : GameOutcome.SecondPlayerWon;
             }
 
-            return GameOutcome.None;
+            return game.GameOutcome;
         }
 
         public async Task<bool> IsBoardValid(Game game, int row, int col)
@@ -135,6 +140,92 @@ namespace TicTacToe.Services
             }
 
             return true;
+        }
+
+        public async Task<GameDTO> CreateGameSolo([FromBody] Guid playerId)
+        {
+            var newGame = new Game(playerId, Guid.Empty);
+            var gameDTO = DomainToDtoMapper.ToDTO(newGame);
+
+            _context.Games.Add(gameDTO);
+            await _context.SaveChangesAsync();
+
+            return gameDTO;
+        }
+        public async Task<GameDTO> CreateGameMulti([FromBody] Guid playerId)
+        {
+            var newGame = new Game(playerId, null);
+            var gameDTO = DomainToDtoMapper.ToDTO(newGame);
+
+            _context.Games.Add(gameDTO);
+            await _context.SaveChangesAsync();
+
+            return gameDTO;
+        }
+
+        public async Task<IEnumerable<GameDTO>> GetAllGames()
+        {
+            IQueryable<GameDTO> query = _context.Games;
+
+            query = query.Where(g => g.GameOutcome == GameOutcome.WaitingForPlayers);
+
+            var games = await query.ToListAsync();
+
+            return games;
+        }
+
+        public async Task<GameDTO?> GetGame(Guid id)
+        {
+            var game = await _context.Games.FindAsync(id);
+
+            return game;
+        }
+
+        public async Task UpdateGame(Guid id, GameDTO updatedGame)
+        {
+            var existingGame = await _context.Games.FindAsync(id);
+
+            _context.Games.Remove(existingGame);
+            _context.Games.Add(updatedGame);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteGame(Guid id)
+        {
+            var game = await _context.Games.FindAsync(id);
+            if (game == null)
+                return false;
+
+            _context.Games.Remove(game);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> JoinGame(Guid id, [FromBody] Guid playerId)
+        {
+            var game = await _context.Games.FindAsync(id);
+
+            if (game == null)
+                return false;
+
+            if (game.PlayerOId != null && game.PlayerOId != Guid.Empty)
+                return false;
+
+            if (game.PlayerXId == playerId)
+                return false;
+
+            game.PlayerOId = playerId;
+            game.GameOutcome = GameOutcome.FirstPlayerTurn;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task ClearAll()
+        {
+            _context.Games.RemoveRange(_context.Games);
+            await _context.SaveChangesAsync();
         }
     }
 }

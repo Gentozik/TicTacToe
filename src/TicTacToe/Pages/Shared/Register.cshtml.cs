@@ -4,9 +4,9 @@ namespace TicTacToe.Pages.Shared
 {
     public class RegisterModel : PageModel
     {
-        private readonly ILogger<LoginModel> _logger;
+        private readonly ILogger<RegisterModel> _logger;
 
-        public RegisterModel(ILogger<LoginModel> logger)
+        public RegisterModel(ILogger<RegisterModel> logger)
         {
             _logger = logger;
         }

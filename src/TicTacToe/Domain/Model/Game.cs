@@ -25,7 +25,7 @@ public class Game
         if (playerOId == null) {
             GameOutcome = GameOutcome.WaitingForPlayers;
         } else {
-            GameOutcome = GameOutcome.None;
+            GameOutcome = GameOutcome.FirstPlayerTurn;
         }
         PlayerOId = playerOId;
     }

@@ -10,6 +10,7 @@ namespace TicTacToe.DI
             services.AddSingleton<GameStorage>();
             services.AddScoped<IGameService, GameService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<AuthFilter>();
 
             return services;
         }

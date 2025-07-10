@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using TicTacToe.Datasource.Mapper;
 using TicTacToe.Datasource.Model;
 using TicTacToe.Domain.Model;
 
@@ -49,42 +47,6 @@ namespace TicTacToe.Datasource
             return game;
         }
 
-        [HttpPost("create-solo")]
-        public async Task<ActionResult<GameDTO>> CreateGameSolo()
-        {
-            Console.WriteLine("Попытка создать соло игру в контроллере");
-
-            /* Заменить на взятие из заголовка */
-            Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userIdGuid);
-            var newGame = new Game(userIdGuid, Guid.Empty);
-            Console.WriteLine("Authenticated: " + User.Identity?.IsAuthenticated);
-
-            var newGameDTO = DomainToDtoMapper.ToDTO(newGame);
-
-            _context.Games.Add(newGameDTO);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetGame), new { id = newGameDTO.Id }, newGameDTO);
-        }
-
-        [HttpPost("create-multi")]
-        public async Task<ActionResult<GameDTO>> CreateGameMulti()
-        {
-            Console.WriteLine("Попытка создать мультиплеерную игру в контроллере");
-
-
-            /* Заменить на взятие из заголовка */
-            Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userIdGuid);
-            var newGame = new Game(userIdGuid, null);
-
-            var newGameDTO = DomainToDtoMapper.ToDTO(newGame);
-
-            _context.Games.Add(newGameDTO);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetGame), new { id = newGameDTO.Id }, newGameDTO);
-        }
-
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateGame(Guid id, GameDTO updatedGame)
         {
@@ -94,10 +56,11 @@ namespace TicTacToe.Datasource
                 return BadRequest();
 
             var existingGame = await _context.Games.FindAsync(id);
-            _context.Games.Remove(existingGame);
 
             if (existingGame == null)
                 return NotFound();
+
+            _context.Games.Remove(existingGame);
 
             existingGame = updatedGame;
 

@@ -1,28 +1,51 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text;
 using TicTacToe.Datasource.Model;
+using TicTacToe.Domain.Model;
 
 namespace TicTacToe.Services
 {
-    public class UserService : IUserService
+    public class UserService(AppDbContext context) : IUserService
     {
-
-        public UserService(AppDbContext context)
+        private readonly AppDbContext _context = context;
+        public async Task<bool> RegisterUserAsync(SignUpRequest request)
         {
-            _context = context;
-        }
-
-        private readonly AppDbContext _context;
-        public async Task<UserDTO> RegisterUserAsync(string login, string password)
-        {
-            var user = new UserDTO { Login = login, Password = password, Uuid = Guid.NewGuid().ToString() };
+            var user = new UserDTO { Login = request.Login, Password = request.Password, Uuid = Guid.NewGuid().ToString() };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return user;
+            return true;
         }
 
-        public async Task<UserDTO?> AuthorizeUserAsync(string login, string password)
+        public async Task<string?> AuthorizeUserAsync(string? authHeader)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Login == login && u.Password == password);
+            if (authHeader == null)
+            {
+                return null;
+            }
+
+            string encodedCredentials = authHeader.Substring("Basic ".Length).Trim();
+            byte[] credentialBytes = Convert.FromBase64String(encodedCredentials);
+            string decodedCredentials = Encoding.UTF8.GetString(credentialBytes);
+
+            var parts = decodedCredentials.Split(':');
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == parts[0] && u.Password == parts[1]);
+
+            if (user == null) {
+                return null;
+            }
+            return user.Uuid;
+        }
+
+        public async Task<UserDTO?> GetUserAsync(string uuid)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Uuid == uuid);
+        }
+
+        public async Task ClearAll()
+        {
+            _context.Users.RemoveRange(_context.Users);
+            await _context.SaveChangesAsync();
         }
     }
 }

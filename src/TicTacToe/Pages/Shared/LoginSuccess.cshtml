@@ -48,21 +48,21 @@
 </style>
 
 <div class="success-container">
-    <p class="header">Welcome, user @Model.UserId!</p>
+    <p class="header">Добро пожаловать, пользователь @Model.UserId!</p>
 
     <form asp-controller="Web" asp-action="NewGame" method="post">
-        <button class="btn" type="submit">Start New Solo Game</button>
+        <button class="btn" type="submit">Начать новую игру (PvE)</button>
     </form>
 
     <form asp-controller="Web" asp-action="NewGameMulti" method="post">
-        <button class="btn" type="submit">Start New Multi Game</button>
+        <button class="btn" type="submit">Начать новую игру (PvP)</button>
     </form>
 
     <form asp-controller="Web" asp-action="AllGames" method="get">
-        <button class="btn" type="submit">View All Games</button>
+        <button class="btn" type="submit">Присоединиться к игре</button>
     </form>
 
-    <form asp-controller="Web" asp-action="Logout" method="post">
+    @*<form asp-controller="Web" asp-action="Logout" method="post">
         <button class="btn" type="submit">Logout</button>
-    </form>
+    </form>*@
 </div>

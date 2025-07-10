@@ -10,6 +10,30 @@ namespace TicTacToe
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenLocalhost(5195, listenOptions =>
+                {
+                    listenOptions.UseHttps();
+                });
+
+                options.ListenLocalhost(5194);
+            });
+
+            builder.Services.AddAuthentication("Cookies").AddCookie("Cookies", options =>
+            {
+                options.LoginPath = "/";
+            });
+
+            builder.Services.AddAuthorization();
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromHours(1); // время жизни сессии
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
             builder.Services.AddRazorPages();
             builder.Services.AddDependencies();
             builder.Services.AddControllersWithViews();
@@ -32,12 +56,13 @@ namespace TicTacToe
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseSession();
 
             app.MapRazorPages();
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Web}/{action=Index}/{id?}"
+                pattern: "{controller=Web}/{action=NewGame}/{id?}"
             );
 
 
